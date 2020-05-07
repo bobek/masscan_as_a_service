@@ -29,6 +29,11 @@ def _parse_args() -> argparse.Namespace:
                    dest='debug', action='store_true',
                    help='Enable debugging')
 
+    p.add_argument('-t', '--targets',
+                   dest='targets', type=str,
+                   required=True,
+                   help='File with targets (IP address) to scan. One per line.')
+
     p.add_argument('-o', '--output_dir',
                    dest='destination_dir', type=str,
                    required=True,
@@ -148,7 +153,7 @@ def main() -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             tmp_output_file = os.path.join(temp_dir, 'output.json')
 
-            assert ssh.connection.put(local='targets.list', remote='/tmp/targets.list')
+            assert ssh.connection.put(local=args.targets, remote='/tmp/targets.list')
             assert ssh.masscan().ok
             assert ssh.connection.get(local=tmp_output_file, remote='/tmp/output.json', preserve_mode=False)
 
