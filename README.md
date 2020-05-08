@@ -26,7 +26,7 @@ We also use version control as a way of detecting changes (e.g. new port being o
 ### Hetzner Cloud
 Create a project at [Hetzner cloud console](https://console.hetzner.cloud/projects). Open the project and go to `Access` section. Create a new API key under `API Tokens` tab.
 
-Token is than read from the environment variable, which is set in the configuration file (`api_token_env`). Example configuration is at [`hcloud_example.yml`](hcloud_example.yml).
+Token is then read from the environment variable, which is set in the configuration file (`api_token_env`). Example configuration is at [`hcloud_example.yml`](examples/hcloud.yml).
 
 ## Example
 
