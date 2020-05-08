@@ -146,7 +146,6 @@ def main() -> None:
 
         scan_server = hcloud.create_vm(vm_name, provider['vm_model'], provider['vm_os_image'])
         ssh = SshWorker(scan_server.public_net.ipv4.ip, args.ssh_private_key)
-        # ssh = SshWorker("95.217.232.216", args.ssh_private_key)
         assert ssh.is_alive()
         assert ssh.bootstrap_host().ok
 
