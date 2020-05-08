@@ -9,7 +9,7 @@ WARNING: commence port scanning from and to systems you operate, and you are all
 ## Theory of Operation
 1. use some system to schedule regular executions. For example gitlab CD or github actions.
 1. run `perform_masscan.py`, you will need
-    - a list of targets (path passed as `--targets`). One target per line. It is up to you how you are going to generate it. For example, in our deployments, we fetch list servers to test from inventory management system (aka Machine DataBase).
+    - a list of targets (path passed as `--targets-ipv4`). One target per line. It is up to you how you are going to generate it. For example, in our deployments, we fetch list servers to test from inventory management system (aka Machine DataBase).
     - access details based on your cloud provider (check below). Also prepare appropriate configuration file.
     - ssh key (private and public parts) to get access to worker.
     - clone repository which you use to store results and point scanner to it  (`--output_dir`)
@@ -33,7 +33,7 @@ Token is than read from the environment variable, which is set in the configurat
 ```bash
 ssh-keygen -t ed25519 -f vm_key -q -N ""
 mkdir /tmp/masscan_out
-echo "127.0.0.1" > targets.list
+echo "127.0.0.1" > targets4.list
 
-HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN ./perform_masscan.py -d -e hcloud_example.yml --ssh-public-key vm_key.pub --ssh-private-key vm_key -t tragets.list -o /tmp/masscan_out
+HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN ./perform_masscan.py -d -e hcloud_example.yml --ssh-public-key vm_key.pub --ssh-private-key vm_key -t4 tragets4.list -o /tmp/masscan_out
 ```
