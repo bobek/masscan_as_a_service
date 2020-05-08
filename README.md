@@ -28,12 +28,106 @@ Create a project at [Hetzner cloud console](https://console.hetzner.cloud/projec
 
 Token is than read from the environment variable, which is set in the configuration file (`api_token_env`). Example configuration is at [`hcloud_example.yml`](hcloud_example.yml).
 
-## Example of execution
+## Example
+
+I have provisioned 2 VM on Hetzner Cloud for this demo. Their IP addresses are `94.130.26.161` and `95.217.232.216`.
+
+### Setup
+You would normally automate following steps in your execution system. I will perform preparation steps manually.
+
+First, we will need some ephemeral ssh key to access worker node. We will generate a new key stored in `vm_key` file with the following command:
 
 ```bash
-ssh-keygen -t ed25519 -f vm_key -q -N ""
-mkdir /tmp/masscan_out
-echo "127.0.0.1" > targets4.list
-
-HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN ./perform_masscan.py -d -e hcloud_example.yml --ssh-public-key vm_key.pub --ssh-private-key vm_key -t4 tragets4.list -o /tmp/masscan_out
+ssh-keygen -t ed25519 -f /tmp/vm_key -q -N ""
 ```
+
+We also need a list of targets to perform port scanning against. Let's store in the file named `targets.list`.
+
+```bash
+cat  <<EOF > /tmp/targets.list
+94.130.26.161
+95.217.232.216
+EOF
+```
+
+Checkout a git repo to place results into:
+
+```bash
+git clone some_remote_repo_with_audits_enabled /tmp/out
+```
+
+### Initial scan
+
+```bash
+HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN ./perform_masscan.py -d -e hcloud_example.yml --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -t4 /tmp/targets.list -o /tmp/out
+```
+
+After the successful scan we will get two new files, one per target. They have the same content as on `ssh` is currently open on these newly provisioned VMs.
+
+```json
+{
+  "22/tcp": {
+    "reason": "syn-ack",
+    "status": "open"
+  }
+}
+```
+
+We can happily commit and push our scan results. Depending on your setup, this will trigger a source code audit as we have made changes to the repository. We will just resolved it with "provisioned 2 new VMs for demoing the masscan" and move on with our DevOps work.
+
+### Opening some ports
+
+Scan was executed multiple times as we are running it regularly from our scheduler. But one day this happens:
+
+```diff
+diff --git i/94.130.26.161.json w/94.130.26.161.json
+index bceef26..fe5c4ee 100644
+--- i/94.130.26.161.json
++++ w/94.130.26.161.json
+@@ -1,6 +1,26 @@
+ {
++  "10250/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
++  "10251/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
++  "10252/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
++  "10256/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
+   "22/tcp": {
+     "reason": "syn-ack",
+     "status": "open"
++  },
++  "6443/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
+   }
+diff --git i/95.217.232.216.json w/95.217.232.216.json
+index bceef26..45249f2 100644
+--- i/95.217.232.216.json
++++ w/95.217.232.216.json
+@@ -1,6 +1,14 @@
+ {
++  "10250/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
++  "10256/tcp": {
++    "reason": "syn-ack",
++    "status": "open"
++  },
+   "22/tcp": {
+     "reason": "syn-ack",
+     "status": "open"
+   }
+```
+
+As usual, we automatically commit and push the changed files to the repository. Source-code audit is going to be triggered as we have a new commit. We see that new ports are now open to the wild Internet. Brief look suggests that somebody has installed a new Kubernetes cluster on these VMs, but had totally forgotten to take care of filtering access to its services from the outside world.
