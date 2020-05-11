@@ -4,4 +4,6 @@
 __pycache__
 
 Pipfile.lock
-
+build/
+dist/
+*.egg-info/

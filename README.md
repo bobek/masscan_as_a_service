@@ -6,9 +6,25 @@ This project leverages an excellent [masscan](https://github.com/robertdavidgrah
 
 WARNING: commence port scanning from and to systems you operate, and you are allowed to send large volume of packets (e.g. TCP ACK) towards. Also make sure, that you have cleared permissions with your hosting providers. This will certainly trip various intrusion detection / anomaly detection systems.
 
+## Installation
+
+Whole project is distributed as a Python package to make it simple to include in your tooling. It is **not** yet on https://pypi.org. Example `Pipfile` for **your** project:
+
+```pipfile
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+masscan_as_a_service = {git = "https://github.com/bobek/masscan_as_a_service.git", editable = true}
+```
+
+This will give you `perform_masscan` binary in your `bin` directory. As usual, `virtualenv` / `pipenv` is recommended.
+
 ## Theory of Operation
 1. use some system to schedule regular executions. For example gitlab CD or github actions.
-1. run `perform_masscan.py`, you will need
+1. run `perform_masscan`, you will need
     - a list of targets (path passed as `--targets-ipv4`). One target per line. It is up to you how you are going to generate it. For example, in our deployments, we fetch list servers to test from inventory management system (aka Machine DataBase).
     - access details based on your cloud provider (check below). Also prepare appropriate configuration file.
     - ssh key (private and public parts) to get access to worker.
@@ -59,7 +75,7 @@ git clone some_remote_repo_with_audits_enabled /tmp/out
 ### Initial scan
 
 ```bash
-HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN ./perform_masscan.py -d -e hcloud_example.yml --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -t4 /tmp/targets.list -o /tmp/out
+HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN perform_masscan -d -e hcloud_example.yml --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -t4 /tmp/targets.list -o /tmp/out
 ```
 
 After the successful scan we will get two new files, one per target. They have the same content as on `ssh` is currently open on these newly provisioned VMs.

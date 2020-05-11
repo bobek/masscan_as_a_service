@@ -12,8 +12,8 @@ import yaml
 
 from typing import Any, List, Dict
 
-from vm_operator.hetzner_cloud_operator import HetznerCloudOperator
-from scan_worker.ssh_worker import SshWorker
+from .vm_operator.hetzner_cloud_operator import HetznerCloudOperator
+from .scan_worker.ssh_worker import SshWorker
 
 LOG_FORMAT = '%(asctime)s %(filename)s:%(lineno)d %(levelname)s %(message)s'
 
