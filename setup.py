@@ -1,7 +1,14 @@
+import os
 import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+REQUIREMENTS = [
+    line.split("#")[0].strip()
+    for line in open(os.path.join(os.path.dirname(__file__), "requirements.txt")).readlines()
+    if line.split("#")[0].strip()
+]
 
 setuptools.setup(
     name="masscan-as-a-service",
@@ -22,4 +29,5 @@ setuptools.setup(
             'masscan_as_a_service = masscan_as_a_service.__main__:main',
         ],
     },
+    install_requires=REQUIREMENTS,
 )

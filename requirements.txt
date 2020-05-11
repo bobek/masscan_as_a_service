@@ -1,0 +1,7 @@
+# Auto-generated!
+
+fabric
+hcloud
+PyYAML
+pytz
+scp
