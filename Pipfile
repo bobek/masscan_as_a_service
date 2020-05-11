@@ -12,3 +12,4 @@ scp = "*"
 
 [dev-packages]
 pylint = "*"
+jinja2 = "*"

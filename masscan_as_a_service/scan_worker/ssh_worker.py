@@ -48,7 +48,7 @@ class SshWorker:
     def masscan(self):
         return self.connection.run(
             'export NOBANNER_TCP_PORTS="[80, 443, 8080]"; '
-            'masscan -iL /tmp/targets-ipv4.list'
+            'masscan -iL /tmp/targets.list'
             ' --open-only'
             ' -oJ /tmp/output.json'
             ' --rate 10000'

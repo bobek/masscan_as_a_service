@@ -19,7 +19,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'perform_masscan = masscan_as_a_service.perform_masscan:main',
+            'masscan_as_a_service = masscan_as_a_service.__main__:main',
         ],
     },
 )

@@ -51,51 +51,17 @@ When installed, you will get a `masscan_as_a_service` application. It can perfor
 Some arguments can be defined only on the global level. For example, you turn debugging on for `cleanup` command with `masscan_as_a_service -d cleanup`.
 
 ```
-usage: masscan_as_a_service [-h] [-d] -e ENV_CONFIG {masscan,cleanup} ...
-
-Masscan in a box
-
-positional arguments:
-  {masscan,cleanup}
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -d, --debug           Enable debugging
-  -e ENV_CONFIG, --environment-config ENV_CONFIG
-                        YAML file describing execution environment
-
+{{ expand_global_help() }}
 ```
 
 ### Command `masscan`
 ```
-usage: masscan_as_a_service masscan [-h] -t TARGETS -o DESTINATION_DIR
-                                    --ssh-public-key SSH_PUBLIC_KEY
-                                    --ssh-private-key SSH_PRIVATE_KEY
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t TARGETS, --targets TARGETS
-                        File with targets (IP address) to scan. One per line.
-  -o DESTINATION_DIR, --output_dir DESTINATION_DIR
-                        Directory to write results to
-  --ssh-public-key SSH_PUBLIC_KEY
-                        File with the public SSH key to be given access to
-                        created VM
-  --ssh-private-key SSH_PRIVATE_KEY
-                        File with the private SSH key corresponding to the
-                        ssh-public-key
-
+{{ expand_masscan_help() }}
 ```
 
 ### Command `cleanup`
 ```
-usage: masscan_as_a_service cleanup [-h] -t THRESHOLD
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t THRESHOLD, --threshold THRESHOLD
-                        All VMs older then THRESHOLD seconds will be deleted.
-
+{{ expand_cleanup_help() }}
 ```
 
 ## Example
