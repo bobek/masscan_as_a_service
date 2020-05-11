@@ -51,17 +51,17 @@ When installed, you will get a `masscan_as_a_service` application. It can perfor
 Some arguments can be defined only on the global level. For example, you turn debugging on for `cleanup` command with `masscan_as_a_service -d cleanup`.
 
 ```
-{{ expand_global_help() }}
+{{ expand_help('global') }}
 ```
 
 ### Command `masscan`
 ```
-{{ expand_masscan_help() }}
+{{ expand_help('masscan') }}
 ```
 
 ### Command `cleanup`
 ```
-{{ expand_cleanup_help() }}
+{{ expand_help('cleanup') }}
 ```
 
 ## Example

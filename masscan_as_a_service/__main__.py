@@ -75,6 +75,7 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
 def _parse_args() -> argparse.Namespace:
     return _args_parser()['global'].parse_args()
 
+
 def convert_list_of_ports_to_dict(list_of_ports: List[Dict[str, Any]]
                                   ) -> dict:
     """Helper to convert list of open ports to dict, e.g.:
