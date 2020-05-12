@@ -32,6 +32,10 @@ class SshWorker:
                 time.sleep(5)
             except AssertionError:
                 self.logger.info(f"Worker {self.ip} returned invalid output.")
+                time.sleep(5)
+            except NoValidConnectionsError:
+                self.logger.info(f"Worker {self.ip} returned NoValidConnectionsError.")
+                time.sleep(5)
         return True
 
     def hostname(self):
