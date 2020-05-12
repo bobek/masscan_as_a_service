@@ -33,8 +33,8 @@ class SshWorker:
             except AssertionError:
                 self.logger.info(f"Worker {self.ip} returned invalid output.")
                 time.sleep(5)
-            except NoValidConnectionsError:
-                self.logger.info(f"Worker {self.ip} returned NoValidConnectionsError.")
+            except:
+                self.logger.info(f"Worker {self.ip} returned unknown exception.")
                 time.sleep(5)
         return True
 
