@@ -61,7 +61,7 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
 
     parser_cleanup = subparsers.add_parser('cleanup')
     parser_cleanup.add_argument('-t', '--threshold',
-                                dest='threshold', type=str,
+                                dest='threshold', type=int,
                                 required=True,
                                 help='All VMs older then THRESHOLD seconds will be deleted.')
 
