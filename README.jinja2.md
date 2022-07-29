@@ -86,6 +86,15 @@ cat  <<EOF > /tmp/targets.list
 EOF
 ```
 
+Optionally you can specify list of api keys with name. `masscan_as_a_service` loads targets dynamically from Hetzner.
+
+```bash
+cat <<EOF > /tmp/api_tokens.yaml
+- name: jbarton # project name, description, ...
+  token: XfT5q...
+EOF
+```
+
 Checkout a git repo to place results into:
 
 ```bash
@@ -96,6 +105,8 @@ git clone some_remote_repo_with_audits_enabled /tmp/out
 
 ```bash
 HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN masscan_as_a_service -d -e examples/hcloud.yml masscan --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -t /tmp/targets.list -o /tmp/out
+# OR
+HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN masscan_as_a_service -d -e examples/hcloud.yml masscan --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -a /tmp/api_tokens.yaml -o /tmp/out
 ```
 
 After the successful scan we will get two new files, one per target. They have the same content as on `ssh` is currently open on these newly provisioned VMs.
