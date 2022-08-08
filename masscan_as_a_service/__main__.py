@@ -140,33 +140,35 @@ def process_masscan_results(masscan_json_output_path: str) -> dict:
     return output
 
 
-def get_all_primary_ips(name: str, api_key: str) -> set:
+def get_all_primary_ips(name: str, api_key: str) -> dict:
     hcloud = HetznerCloudOperator(api_key)
 
-    machines = set()
+    machines = dict()
 
     logging.info("Scanning project: %s", name)
 
     for server in hcloud.client.servers.get_all():
         if server.public_net.primary_ipv4:
-            machines.add(server.public_net.primary_ipv4.ip)
+            host = {
+                "project": name,
+                "name": server.name,
+            }
+            machines[server.public_net.primary_ipv4.ip] = host
         else:
             logging.warning("Server %s does not have primary ipv4", server.name)
 
     return machines
 
 
-def get_api_targets(api_keys_path: str) -> io.StringIO:
+def get_api_targets(api_keys_path: str) -> dict:
     with open(api_keys_path, "r") as api_keys:
         api_keys = yaml.safe_load(api_keys)
 
-    targets = set()
+    targets = dict()
     for api_key in api_keys:
-        targets = targets.union(
-            get_all_primary_ips(api_key['name'], api_key['token'])
-        )
+        targets.update(get_all_primary_ips(api_key['name'], api_key['token']))
 
-    return io.StringIO("\n".join(targets) + "\n")
+    return targets
 
 
 def main() -> None:
@@ -195,8 +197,12 @@ def main() -> None:
         if args.command == 'cleanup':
             hcloud.purge_old_vms(args.threshold)
         elif args.command == 'masscan':
+            api_targets = None
             if args.api_keys:
-                args.targets = get_api_targets(args.api_keys)
+                api_targets = get_api_targets(args.api_keys)
+                args.targets = io.StringIO(
+                        "\n".join(api_targets.keys())
+                        + "\n")
 
             ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                                '%Y%m%d-%H%M%S')
@@ -224,7 +230,11 @@ def main() -> None:
                     for ip in results:
                         output_file = os.path.join(args.destination_dir, f"{ip}.json")
                         with open(output_file, 'w') as stream:
-                            json.dump(results[ip], stream, sort_keys=True, indent=2)
+                            host = results[ip]
+                            if api_targets and api_targets[ip]:
+                                host['project'] = api_targets[ip]['project']
+                                host['name'] = api_targets[ip]['name']
+                            json.dump(host, stream, sort_keys=True, indent=2)
                 except Exception as e:
                     print(e)
 
