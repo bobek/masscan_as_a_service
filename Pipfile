@@ -9,6 +9,7 @@ hcloud = "*"
 PyYAML = "*"
 pytz = "*"
 scp = "*"
+certifi = "*"
 
 [dev-packages]
 pylint = "*"
