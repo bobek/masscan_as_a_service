@@ -68,14 +68,17 @@ optional arguments:
 
 ### Command `masscan`
 ```
-usage: masscan_as_a_service masscan [-h] -t TARGETS -o DESTINATION_DIR
-                                    --ssh-public-key SSH_PUBLIC_KEY
-                                    --ssh-private-key SSH_PRIVATE_KEY
+usage: masscan_as_a_service masscan [-h] (-t TARGETS | -a API_KEYS) -o
+                                    DESTINATION_DIR --ssh-public-key
+                                    SSH_PUBLIC_KEY --ssh-private-key
+                                    SSH_PRIVATE_KEY
 
 optional arguments:
   -h, --help            show this help message and exit
   -t TARGETS, --targets TARGETS
                         File with targets (IP address) to scan. One per line.
+  -a API_KEYS, --api_keys API_KEYS
+                        File with API keys of projects to scan. YAML array.
   -o DESTINATION_DIR, --output_dir DESTINATION_DIR
                         Directory to write results to
   --ssh-public-key SSH_PUBLIC_KEY
@@ -120,6 +123,15 @@ cat  <<EOF > /tmp/targets.list
 EOF
 ```
 
+Optionally you can specify list of api keys with name. `masscan_as_a_service` loads targets dynamically from Hetzner.
+
+```bash
+cat <<EOF > /tmp/api_tokens.yaml
+- name: jbarton # project name, description, ...
+  token: XfT5q...
+EOF
+```
+
 Checkout a git repo to place results into:
 
 ```bash
@@ -130,6 +142,8 @@ git clone some_remote_repo_with_audits_enabled /tmp/out
 
 ```bash
 HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN masscan_as_a_service -d -e examples/hcloud.yml masscan --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -t /tmp/targets.list -o /tmp/out
+# OR
+HCLOUD_TOKEN=VERY_LONG_STRING_WITH_API_TOKEN masscan_as_a_service -d -e examples/hcloud.yml masscan --ssh-public-key /tmp/vm_key.pub --ssh-private-key /tmp/vm_key -a /tmp/api_tokens.yaml -o /tmp/out
 ```
 
 After the successful scan we will get two new files, one per target. They have the same content as on `ssh` is currently open on these newly provisioned VMs.

@@ -2,4 +2,4 @@ provider:
   type: hetzner_cloud
   api_token_env: HCLOUD_TOKEN
   vm_model: cx21
-  vm_os_image: debian-10
+  vm_os_image: debian-11

@@ -2,18 +2,19 @@
 
 import argparse
 import datetime
+import io
 import json
 import logging
 import os
 import sys
 import tempfile
+from json import JSONDecodeError
+from typing import Any, List, Dict
 
 import yaml
 
-from typing import Any, List, Dict
-
-from .vm_operator.hetzner_cloud_operator import HetznerCloudOperator
 from .scan_worker.ssh_worker import SshWorker
+from .vm_operator.hetzner_cloud_operator import HetznerCloudOperator
 
 LOG_FORMAT = '%(asctime)s %(filename)s:%(lineno)d %(levelname)s %(message)s'
 
@@ -39,10 +40,15 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
     subparsers = parser.add_subparsers(dest='command')
 
     parser_masscan = subparsers.add_parser('masscan')
-    parser_masscan.add_argument('-t', '--targets',
-                                dest='targets', type=str,
-                                required=True,
-                                help='File with targets (IP address) to scan. One per line.')
+
+    group = parser_masscan.add_mutually_exclusive_group(required=True)
+    group.add_argument('-t', '--targets',
+                       dest='targets', type=str,
+                       help='File with targets (IP address) to scan. One per line.')
+
+    group.add_argument('-a', '--api_keys',
+                       dest='api_keys', type=str,
+                       help='File with API keys of projects to scan. YAML array.')
 
     parser_masscan.add_argument('-o', '--output_dir',
                                 dest='destination_dir', type=str,
@@ -121,14 +127,48 @@ def process_masscan_results(masscan_json_output_path: str) -> dict:
         raw_data = stream.read()
         # Remove the whistespaces and the last ",]", and restore the "]"
         # as masscan actually produces an invalid JSON.
-        json_data = json.loads(
-            "".join(raw_data.split()).rstrip(",]") + str("]"))
+        json_data = []
+        try:
+            json_data = json.loads(
+                "".join(raw_data.split()).rstrip(",]") + str("]"))
+        except JSONDecodeError as e:
+            print(e)
     output = {}
     for event in json_data:
-        ip_address = event['ip']
         dict_of_ports = convert_list_of_ports_to_dict(event['ports'])
         output.setdefault(event['ip'], {}).update(dict_of_ports)
     return output
+
+
+def get_all_primary_ips(name: str, api_key: str) -> dict:
+    hcloud = HetznerCloudOperator(api_key)
+
+    machines = dict()
+
+    logging.info("Scanning project: %s", name)
+
+    for server in hcloud.client.servers.get_all():
+        if server.public_net.primary_ipv4:
+            host = {
+                "project": name,
+                "name": server.name,
+            }
+            machines[server.public_net.primary_ipv4.ip] = host
+        else:
+            logging.warning("Server %s does not have primary ipv4", server.name)
+
+    return machines
+
+
+def get_api_targets(api_keys_path: str) -> dict:
+    with open(api_keys_path, "r") as api_keys:
+        api_keys = yaml.safe_load(api_keys)
+
+    targets = dict()
+    for api_key in api_keys:
+        targets.update(get_all_primary_ips(api_key['name'], api_key['token']))
+
+    return targets
 
 
 def main() -> None:
@@ -157,6 +197,13 @@ def main() -> None:
         if args.command == 'cleanup':
             hcloud.purge_old_vms(args.threshold)
         elif args.command == 'masscan':
+            api_targets = None
+            if args.api_keys:
+                api_targets = get_api_targets(args.api_keys)
+                args.targets = io.StringIO(
+                        "\n".join(api_targets.keys())
+                        + "\n")
+
             ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                                '%Y%m%d-%H%M%S')
             with open(args.ssh_public_key, 'r') as stream:
@@ -174,15 +221,22 @@ def main() -> None:
             with tempfile.TemporaryDirectory() as temp_dir:
                 tmp_output_file = os.path.join(temp_dir, 'output.json')
 
-                assert ssh.connection.put(local=args.targets, remote='/tmp/targets.list')
-                assert ssh.masscan().ok
-                assert ssh.connection.get(local=tmp_output_file, remote='/tmp/output.json', preserve_mode=False)
+                try:
+                    assert ssh.connection.put(local=args.targets, remote='/tmp/targets.list')
+                    assert ssh.masscan().ok
+                    assert ssh.connection.get(local=tmp_output_file, remote='/tmp/output.json', preserve_mode=False)
 
-                results = process_masscan_results(tmp_output_file)
-                for ip in results:
-                    output_file = os.path.join(args.destination_dir, f"{ip}.json")
-                    with open(output_file, 'w') as stream:
-                        json.dump(results[ip], stream, sort_keys=True, indent=2)
+                    results = process_masscan_results(tmp_output_file)
+                    for ip in results:
+                        output_file = os.path.join(args.destination_dir, f"{ip}.json")
+                        with open(output_file, 'w') as stream:
+                            host = results[ip]
+                            if api_targets and api_targets[ip]:
+                                host['project'] = api_targets[ip]['project']
+                                host['name'] = api_targets[ip]['name']
+                            json.dump(host, stream, sort_keys=True, indent=2)
+                except Exception as e:
+                    print(e)
 
             hcloud.delete_vm(vm_name)
             hcloud.delete_ssh_key(ssh_key_name)

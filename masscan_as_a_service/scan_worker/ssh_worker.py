@@ -57,5 +57,6 @@ class SshWorker:
             ' -oJ /tmp/output.json'
             ' --rate 10000'
             ' -p 1-65535 -p U:1-65535'
+            ' -v'
         )
 
