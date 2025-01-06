@@ -6,6 +6,7 @@ import io
 import json
 import logging
 import os
+import socket
 import sys
 import tempfile
 from json import JSONDecodeError
@@ -36,6 +37,12 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
                         dest='env_config',
                         required=True,
                         help='YAML file describing execution environment')
+
+    parser.add_argument('-R', '--no-resolve',
+                        dest='no_resolve',
+                        action="store_true",
+                        help="Do not resolve IP address to FQDN",
+                        default=False)
 
     subparsers = parser.add_subparsers(dest='command')
 
@@ -171,6 +178,13 @@ def get_api_targets(api_keys_path: str) -> dict:
     return targets
 
 
+def resolve(ip):
+    try:
+        return socket.getfqdn(ip)
+    except Exception as e:
+        print(f'Failed to resolve: {e}')
+        return ip
+
 def main() -> None:
     """
     Magic happens here
@@ -228,7 +242,11 @@ def main() -> None:
 
                     results = process_masscan_results(tmp_output_file)
                     for ip in results:
-                        output_file = os.path.join(args.destination_dir, f"{ip}.json")
+                        if args.no_resolve:
+                            name = ip
+                        else:
+                            name = resolve(ip)
+                        output_file = os.path.join(args.destination_dir, f"{name}.json")
                         with open(output_file, 'w') as stream:
                             host = results[ip]
                             if api_targets and api_targets[ip]:
