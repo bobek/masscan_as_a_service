@@ -57,6 +57,13 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
                        dest='api_keys', type=str,
                        help='File with API keys of projects to scan. YAML array.')
 
+    parser_masscan.add_argument('-L', '--label',
+                                dest='label',
+                                nargs='*',
+                                action='extend',
+                                help="Label to be added to the VM (key=value)",
+                                default=[])
+
     parser_masscan.add_argument('-o', '--output_dir',
                                 dest='destination_dir', type=str,
                                 required=True,
@@ -220,14 +227,15 @@ def main() -> None:
 
             ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                                '%Y%m%d-%H%M%S')
+            labels = dict(map(lambda l: l.split('='), args.label))
             with open(args.ssh_public_key, 'r') as stream:
                 key = stream.read()
-                hcloud.add_new_ssh_key(ssh_key_name, key)
+                hcloud.add_new_ssh_key(ssh_key_name, key, labels)
 
             vm_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                           '%Y%m%d-%H%M%S')
 
-            scan_server = hcloud.create_vm(vm_name, provider['vm_model'], provider['vm_os_image'])
+            scan_server = hcloud.create_vm(vm_name, provider['vm_model'], provider['vm_os_image'], labels)
             ssh = SshWorker(scan_server.public_net.ipv4.ip, args.ssh_private_key)
             assert ssh.is_alive()
             assert ssh.bootstrap_host().ok
