@@ -51,34 +51,37 @@ When installed, you will get a `masscan_as_a_service` application. It can perfor
 Some arguments can be defined only on the global level. For example, you turn debugging on for `cleanup` command with `masscan_as_a_service -d cleanup`.
 
 ```
-usage: masscan_as_a_service [-h] [-d] -e ENV_CONFIG {masscan,cleanup} ...
+usage: masscan_as_a_service [-h] [-d] -e ENV_CONFIG [-R] {masscan,cleanup} ...
 
 Masscan in a box
 
 positional arguments:
   {masscan,cleanup}
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -d, --debug           Enable debugging
   -e ENV_CONFIG, --environment-config ENV_CONFIG
                         YAML file describing execution environment
+  -R, --no-resolve      Do not resolve IP address to FQDN
 
 ```
 
 ### Command `masscan`
 ```
-usage: masscan_as_a_service masscan [-h] (-t TARGETS | -a API_KEYS) -o
-                                    DESTINATION_DIR --ssh-public-key
-                                    SSH_PUBLIC_KEY --ssh-private-key
-                                    SSH_PRIVATE_KEY
+usage: masscan_as_a_service masscan [-h] (-t TARGETS | -a API_KEYS)
+                                    [-L [LABEL ...]] -o DESTINATION_DIR
+                                    --ssh-public-key SSH_PUBLIC_KEY
+                                    --ssh-private-key SSH_PRIVATE_KEY
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -t TARGETS, --targets TARGETS
                         File with targets (IP address) to scan. One per line.
   -a API_KEYS, --api_keys API_KEYS
                         File with API keys of projects to scan. YAML array.
+  -L [LABEL ...], --label [LABEL ...]
+                        Label to be added to the VM (key=value)
   -o DESTINATION_DIR, --output_dir DESTINATION_DIR
                         Directory to write results to
   --ssh-public-key SSH_PUBLIC_KEY
@@ -94,7 +97,7 @@ optional arguments:
 ```
 usage: masscan_as_a_service cleanup [-h] -t THRESHOLD
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -t THRESHOLD, --threshold THRESHOLD
                         All VMs older then THRESHOLD seconds will be deleted.
