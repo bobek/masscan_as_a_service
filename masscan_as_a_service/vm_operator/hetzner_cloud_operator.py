@@ -20,13 +20,13 @@ class HetznerCloudOperator:
         key = self.client.ssh_keys.get_by_name(key_name)
         self.client.ssh_keys.delete(key)
 
-    def add_new_ssh_key(self, ssh_key_name, ssh_key):
+    def add_new_ssh_key(self, ssh_key_name, ssh_key, labels):
         """
         Add new SSH key to Hetzner Cloud Project
         """
-        self.client.ssh_keys.create(ssh_key_name, ssh_key)
+        self.client.ssh_keys.create(ssh_key_name, ssh_key, labels=labels)
 
-    def create_vm(self, vm_name, vm_model, vm_os_image):
+    def create_vm(self, vm_name, vm_model, vm_os_image, labels):
         """
         Provision a new VM
         """
@@ -35,7 +35,8 @@ class HetznerCloudOperator:
             name=vm_name,
             server_type=ServerType(vm_model),
             ssh_keys=self.client.ssh_keys.get_all(),
-            image=Image(name=vm_os_image))
+            image=Image(name=vm_os_image),
+            labels=labels)
         response.action.wait_until_finished()
         return response.server
 
