@@ -235,15 +235,20 @@ def main() -> None:
             vm_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                           '%Y%m%d-%H%M%S')
 
-            scan_server = hcloud.create_vm(vm_name, provider['vm_model'], provider['vm_os_image'], labels)
-            ssh = SshWorker(scan_server.public_net.ipv4.ip, args.ssh_private_key)
-            assert ssh.is_alive()
-            assert ssh.bootstrap_host().ok
-
+            exit_with_error = False
             with tempfile.TemporaryDirectory() as temp_dir:
                 tmp_output_file = os.path.join(temp_dir, 'output.json')
 
                 try:
+                    scan_server = hcloud.create_vm(
+                        vm_name, provider["vm_model"], provider["vm_os_image"], labels
+                    )
+                    ssh = SshWorker(
+                        scan_server.public_net.ipv4.ip, args.ssh_private_key
+                    )
+                    assert ssh.is_alive()
+                    assert ssh.bootstrap_host().ok
+
                     assert ssh.connection.put(local=args.targets, remote='/tmp/targets.list')
                     assert ssh.masscan().ok
                     assert ssh.connection.get(local=tmp_output_file, remote='/tmp/output.json', preserve_mode=False)
@@ -263,9 +268,14 @@ def main() -> None:
                             json.dump(host, stream, sort_keys=True, indent=2)
                 except Exception as e:
                     print(e)
+                    exit_with_error = True
 
             hcloud.delete_vm(vm_name)
             hcloud.delete_ssh_key(ssh_key_name)
+
+            if exit_with_error:
+                print("An error occurred during the scan. Please check the logs.")
+                sys.exit(1)
 
 
 if __name__ == '__main__':
