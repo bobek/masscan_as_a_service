@@ -18,7 +18,10 @@ class HetznerCloudOperator:
     def delete_ssh_key(self, key_name):
         """Delete matching SSH key"""
         key = self.client.ssh_keys.get_by_name(key_name)
-        self.client.ssh_keys.delete(key)
+        if key:
+            self.logger.info(f"Deleting SSH key {key_name}")
+            # Delete the SSH key
+            self.client.ssh_keys.delete(key)
 
     def add_new_ssh_key(self, ssh_key_name, ssh_key, labels):
         """
@@ -44,7 +47,9 @@ class HetznerCloudOperator:
         """
         Delete an existing VM given its name
         """
-        self._delete_vm(self.client.servers.get_by_name(vm_name))
+        vm = self.client.servers.get_by_name(vm_name)
+        if vm:
+            self._delete_vm(vm)
 
     def purge_old_vms(self, max_age):
         """
