@@ -2,10 +2,12 @@
 
 import argparse
 import datetime
+from functools import partial
 import io
 import json
 import logging
 import os
+import signal
 import socket
 import sys
 import tempfile
@@ -85,10 +87,17 @@ def _args_parser() -> Dict[str, argparse.ArgumentParser]:
                                 required=True,
                                 help='All VMs older then THRESHOLD seconds will be deleted.')
 
+    parser_cleanup_expired = subparsers.add_parser('cleanup-expired')
+    parser_cleanup_expired.add_argument('-L', '--label',
+                                dest='label',
+                                required=True,
+                                help='All expired (expired delete_after label) VMs matching {label} will be deleted')
+
     return {
         'global': parser,
         'masscan': parser_masscan,
         'cleanup': parser_cleanup,
+        'cleanup_expired': parser_cleanup_expired,
     }
 
 
@@ -192,6 +201,20 @@ def resolve(ip):
         print(f'Failed to resolve: {e}')
         return ip
 
+def handle_signal(signum, frame, hcloud, vm_name, ssh_key_name):
+    logging.warning("Interrupted - Cleaning up")
+    try:
+        hcloud.delete_vm(vm_name)
+    except Exception as e:
+        logging.error(f"Failed to delete spawned VM: {e}")
+        pass
+
+    try:
+        hcloud.delete_ssh_key(ssh_key_name)
+    except Exception as e:
+        logging.error(f"Failed to delete provisioned SSH key: {e}")
+        pass
+
 def main() -> None:
     """
     Magic happens here
@@ -217,6 +240,8 @@ def main() -> None:
 
         if args.command == 'cleanup':
             hcloud.purge_old_vms(args.threshold)
+        if args.command == 'cleanup-expired':
+            hcloud.purge_expired_vms(args.label)
         elif args.command == 'masscan':
             api_targets = None
             if args.api_keys:
@@ -234,6 +259,12 @@ def main() -> None:
 
             vm_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
                                                           '%Y%m%d-%H%M%S')
+
+            # do the cleanup if aborted
+            for signal_to_handle in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGABRT, signal.SIGHUP]:
+                signal.signal(
+                    signal_to_handle, partial(handle_signal, hcloud=hcloud, vm_name=vm_name, ssh_key_name=ssh_key_name)
+                )
 
             exit_with_error = False
             with tempfile.TemporaryDirectory() as temp_dir:
