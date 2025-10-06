@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from hcloud.images.domain import Image
 from hcloud import Client
 from hcloud.server_types.domain import ServerType
@@ -60,6 +60,26 @@ class HetznerCloudOperator:
         for vm in self.client.servers.get_all():
             if (datetime.now(pytz.utc) - timedelta(seconds=max_age)) > vm.created:
                 self._delete_vm(vm)
+
+    def purge_expired_vms(self, label):
+        """
+        Delete all expired VMs (expired delete_after label) matching {label}
+        """
+
+        label_key, label_value = label.split("=")
+
+        for vm in self.client.servers.get_all():
+            # only consider masscan's VMs for deletion
+            if label_key in vm.labels and vm.labels[label_key] == label_value:
+                if 'delete_after' in vm.labels:
+                    # parse VM's delete_after label (use UTC if label has no explicit timezone)
+                    vm_delete_after = datetime.fromisoformat(vm.labels['delete_after'])
+                    if vm_delete_after.tzinfo is None:
+                        vm_delete_after.replace(tzinfo=timezone.utc)
+
+                    if datetime.now(timezone.utc) > vm_delete_after:
+                        self.logger.info("VM '%s' has expired delete_after label - deleting the VM", vm.name)
+                        self._delete_vm(vm)
 
     def _delete_vm(self, vm):
         """
