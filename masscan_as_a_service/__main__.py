@@ -242,6 +242,7 @@ def main() -> None:
             hcloud.purge_old_vms(args.threshold)
         if args.command == 'cleanup-expired':
             hcloud.purge_expired_vms(args.label)
+            hcloud.purge_expired_ssh_keys(args.label)
         elif args.command == 'masscan':
             api_targets = None
             if args.api_keys:

@@ -21,7 +21,7 @@ class HetznerCloudOperator:
         if key:
             self.logger.info(f"Deleting SSH key {key_name}")
             # Delete the SSH key
-            self.client.ssh_keys.delete(key)
+            self._delete_ssh_key(key)
 
     def add_new_ssh_key(self, ssh_key_name, ssh_key, labels):
         """
@@ -61,25 +61,43 @@ class HetznerCloudOperator:
             if (datetime.now(pytz.utc) - timedelta(seconds=max_age)) > vm.created:
                 self._delete_vm(vm)
 
+    def object_is_expired(self, object_labels):
+        if 'delete_after' in object_labels:
+            # parse delete_after label (use UTC if label has no explicit timezone)
+            delete_after = datetime.fromisoformat(object_labels['delete_after'])
+            if delete_after.tzinfo is None:
+                delete_after.replace(tzinfo=timezone.utc)
+
+            if datetime.now(timezone.utc) > delete_after:
+                return True
+        
+        return False
+
     def purge_expired_vms(self, label):
         """
         Delete all expired VMs (expired delete_after label) matching {label}
         """
-
         label_key, label_value = label.split("=")
 
         for vm in self.client.servers.get_all():
             # only consider masscan's VMs for deletion
             if label_key in vm.labels and vm.labels[label_key] == label_value:
-                if 'delete_after' in vm.labels:
-                    # parse VM's delete_after label (use UTC if label has no explicit timezone)
-                    vm_delete_after = datetime.fromisoformat(vm.labels['delete_after'])
-                    if vm_delete_after.tzinfo is None:
-                        vm_delete_after.replace(tzinfo=timezone.utc)
+                if self.object_is_expired(vm.labels):
+                    self.logger.info("VM '%s' has expired delete_after label - deleting the VM", vm.name)
+                    self._delete_vm(vm)
 
-                    if datetime.now(timezone.utc) > vm_delete_after:
-                        self.logger.info("VM '%s' has expired delete_after label - deleting the VM", vm.name)
-                        self._delete_vm(vm)
+    def purge_expired_ssh_keys(self, label):
+        """
+        Delete all expired SSH keys (expired delete_after label) matching {label}
+        """
+        label_key, label_value = label.split("=")
+
+        for key in self.client.ssh_keys.get_all():
+            # only consider SSH keys matching the specified label
+            if label_key in key.labels and key.labels[label_key] == label_value:
+                if self.object_is_expired(key.labels):
+                    self.logger.info("SSH key '%s' has expired delete_after label - deleting the key", key.name)
+                    self._delete_ssh_key(key)
 
     def _delete_vm(self, vm):
         """
@@ -87,3 +105,10 @@ class HetznerCloudOperator:
         """
         self.logger.info(f"Deleting VM {vm.name}")
         self.client.servers.delete(vm)
+
+    def _delete_ssh_key(self, key):
+        """
+        Perform deletion of the ssh key
+        """
+        self.logger.info(f"Deleting ssh key {key.name}")
+        self.client.ssh_keys.delete(key)
