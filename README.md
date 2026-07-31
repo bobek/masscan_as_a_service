@@ -13,6 +13,8 @@ WARNING: commence port scanning from and to systems you operate, and you are all
 Whole project is distributed as a Python package (PEP 621 / `pyproject.toml`) to make it simple to include in your tooling. It is **not** yet on <https://pypi.org>, so install it straight from git:
 
 ```shell
+uv tool install git+https://github.com/bobek/masscan_as_a_service.git
+# or, with pip
 pip install git+https://github.com/bobek/masscan_as_a_service.git
 ```
 
@@ -27,12 +29,13 @@ dependencies = [
 
 This will give you `masscan_as_a_service` binary in your `bin` directory. As usual, a virtual environment (`python -m venv`, `uv`, ...) is recommended.
 
-For development, clone the repository and install it in editable mode with the dev extras:
+For development we use [uv](https://docs.astral.sh/uv/). Clone the repository and let `uv` create the virtual environment, install the pinned dependencies from `uv.lock` and the project itself in editable mode:
 
 ```shell
-make install   # pip install -e '.[dev]'
-make lint      # ruff
-make test      # pytest
+make install   # uv sync
+make lint      # uv run ruff check .
+make test      # uv run pytest
+make build     # uv build
 make README.md # regenerate this file after changing the CLI
 ```
 
