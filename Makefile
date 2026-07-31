@@ -2,23 +2,26 @@
 
 all: README.md
 
+# Generate into a temporary file first, so a failing generator does not
+# truncate the committed README.md.
 README.md: README.jinja2.md generate_readme.py src/masscan_as_a_service/__main__.py
-	./generate_readme.py > README.md
+	uv run ./generate_readme.py > $@.tmp
+	mv $@.tmp $@
 
 install:
-	python3 -m pip install -e '.[dev]'
+	uv sync
 
 lint:
-	ruff check .
+	uv run ruff check .
 
 fix:
-	ruff check --fix .
+	uv run ruff check --fix .
 
 test:
-	python3 -m pytest
+	uv run pytest
 
 build:
-	python3 -m build
+	uv build
 
 clean:
-	rm -rf build dist src/*.egg-info .pytest_cache .ruff_cache
+	rm -rf build dist src/*.egg-info .pytest_cache .ruff_cache README.md.tmp
