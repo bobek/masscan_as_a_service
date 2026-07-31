@@ -19,14 +19,21 @@ def test_every_subparser_is_exposed(name):
 
 
 def test_masscan_with_targets(parser):
-    args = parser.parse_args([
-        '-e', 'env.yaml',
-        'masscan',
-        '--targets', 'targets.list',
-        '--output_dir', 'out',
-        '--ssh-public-key', 'id.pub',
-        '--ssh-private-key', 'id',
-    ])
+    args = parser.parse_args(
+        [
+            '-e',
+            'env.yaml',
+            'masscan',
+            '--targets',
+            'targets.list',
+            '--output_dir',
+            'out',
+            '--ssh-public-key',
+            'id.pub',
+            '--ssh-private-key',
+            'id',
+        ]
+    )
 
     assert args.command == 'masscan'
     assert args.targets == 'targets.list'
@@ -38,16 +45,26 @@ def test_masscan_with_targets(parser):
 
 
 def test_masscan_labels_are_collected(parser):
-    args = parser.parse_args([
-        '-d', '-R',
-        '-e', 'env.yaml',
-        'masscan',
-        '--api_keys', 'keys.yaml',
-        '--output_dir', 'out',
-        '--ssh-public-key', 'id.pub',
-        '--ssh-private-key', 'id',
-        '-L', 'owner=security', 'delete_after=2026-01-01T00:00:00+00:00',
-    ])
+    args = parser.parse_args(
+        [
+            '-d',
+            '-R',
+            '-e',
+            'env.yaml',
+            'masscan',
+            '--api_keys',
+            'keys.yaml',
+            '--output_dir',
+            'out',
+            '--ssh-public-key',
+            'id.pub',
+            '--ssh-private-key',
+            'id',
+            '-L',
+            'owner=security',
+            'delete_after=2026-01-01T00:00:00+00:00',
+        ]
+    )
 
     assert args.debug is True
     assert args.no_resolve is True
@@ -60,15 +77,23 @@ def test_masscan_labels_are_collected(parser):
 
 def test_targets_and_api_keys_are_mutually_exclusive(parser):
     with pytest.raises(SystemExit):
-        parser.parse_args([
-            '-e', 'env.yaml',
-            'masscan',
-            '--targets', 'targets.list',
-            '--api_keys', 'keys.yaml',
-            '--output_dir', 'out',
-            '--ssh-public-key', 'id.pub',
-            '--ssh-private-key', 'id',
-        ])
+        parser.parse_args(
+            [
+                '-e',
+                'env.yaml',
+                'masscan',
+                '--targets',
+                'targets.list',
+                '--api_keys',
+                'keys.yaml',
+                '--output_dir',
+                'out',
+                '--ssh-public-key',
+                'id.pub',
+                '--ssh-private-key',
+                'id',
+            ]
+        )
 
 
 def test_environment_config_is_required(parser):

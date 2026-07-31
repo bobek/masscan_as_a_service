@@ -58,32 +58,40 @@ def operator():
     return op
 
 
-@pytest.mark.parametrize('labels', [
-    {},
-    {'app': 'masscan'},
-    {'delete_after': _iso(hours=1)},
-    {'delete_after': _naive_iso(hours=1)},
-])
+@pytest.mark.parametrize(
+    'labels',
+    [
+        {},
+        {'app': 'masscan'},
+        {'delete_after': _iso(hours=1)},
+        {'delete_after': _naive_iso(hours=1)},
+    ],
+)
 def test_not_expired(operator, labels):
     assert operator.object_is_expired(labels) is False
 
 
-@pytest.mark.parametrize('labels', [
-    {'delete_after': _iso(hours=-1)},
-    {'delete_after': _naive_iso(hours=-1)},
-])
+@pytest.mark.parametrize(
+    'labels',
+    [
+        {'delete_after': _iso(hours=-1)},
+        {'delete_after': _naive_iso(hours=-1)},
+    ],
+)
 def test_expired(operator, labels):
     assert operator.object_is_expired(labels) is True
 
 
 def test_purge_expired_vms_only_deletes_expired_and_labelled(operator):
-    operator.client.servers = FakeCollection([
-        FakeResource('expired-and-labelled', {'app': 'masscan', 'delete_after': _iso(hours=-1)}),
-        FakeResource('labelled-but-fresh', {'app': 'masscan', 'delete_after': _iso(hours=1)}),
-        FakeResource('expired-but-foreign', {'app': 'production', 'delete_after': _iso(hours=-1)}),
-        FakeResource('no-delete-after', {'app': 'masscan'}),
-        FakeResource('unlabelled', {}),
-    ])
+    operator.client.servers = FakeCollection(
+        [
+            FakeResource('expired-and-labelled', {'app': 'masscan', 'delete_after': _iso(hours=-1)}),
+            FakeResource('labelled-but-fresh', {'app': 'masscan', 'delete_after': _iso(hours=1)}),
+            FakeResource('expired-but-foreign', {'app': 'production', 'delete_after': _iso(hours=-1)}),
+            FakeResource('no-delete-after', {'app': 'masscan'}),
+            FakeResource('unlabelled', {}),
+        ]
+    )
 
     operator.purge_expired_vms(LABEL)
 
@@ -91,11 +99,13 @@ def test_purge_expired_vms_only_deletes_expired_and_labelled(operator):
 
 
 def test_purge_expired_ssh_keys_only_deletes_expired_and_labelled(operator):
-    operator.client.ssh_keys = FakeCollection([
-        FakeResource('expired-and-labelled', {'app': 'masscan', 'delete_after': _iso(hours=-1)}),
-        FakeResource('labelled-but-fresh', {'app': 'masscan', 'delete_after': _iso(hours=1)}),
-        FakeResource('expired-but-foreign', {'app': 'production', 'delete_after': _iso(hours=-1)}),
-    ])
+    operator.client.ssh_keys = FakeCollection(
+        [
+            FakeResource('expired-and-labelled', {'app': 'masscan', 'delete_after': _iso(hours=-1)}),
+            FakeResource('labelled-but-fresh', {'app': 'masscan', 'delete_after': _iso(hours=1)}),
+            FakeResource('expired-but-foreign', {'app': 'production', 'delete_after': _iso(hours=-1)}),
+        ]
+    )
 
     operator.purge_expired_ssh_keys(LABEL)
 

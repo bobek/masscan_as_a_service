@@ -40,7 +40,8 @@ class HetznerCloudOperator:
             server_type=ServerType(vm_model),
             ssh_keys=self.client.ssh_keys.get_all(),
             image=Image(name=vm_os_image),
-            labels=labels)
+            labels=labels,
+        )
         response.action.wait_until_finished()
         return response.server
 
@@ -82,8 +83,7 @@ class HetznerCloudOperator:
 
         for vm in self.client.servers.get_all():
             # only consider masscan's VMs for deletion
-            if (label_key in vm.labels and vm.labels[label_key] == label_value
-                    and self.object_is_expired(vm.labels)):
+            if label_key in vm.labels and vm.labels[label_key] == label_value and self.object_is_expired(vm.labels):
                 self.logger.info("VM '%s' has expired delete_after label - deleting the VM", vm.name)
                 self._delete_vm(vm)
 
@@ -95,8 +95,7 @@ class HetznerCloudOperator:
 
         for key in self.client.ssh_keys.get_all():
             # only consider SSH keys matching the specified label
-            if (label_key in key.labels and key.labels[label_key] == label_value
-                    and self.object_is_expired(key.labels)):
+            if label_key in key.labels and key.labels[label_key] == label_value and self.object_is_expired(key.labels):
                 self.logger.info("SSH key '%s' has expired delete_after label - deleting the key", key.name)
                 self._delete_ssh_key(key)
 
