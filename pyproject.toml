@@ -37,7 +37,7 @@ dependencies = [
     "scp",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "jinja2",
     "pytest",
