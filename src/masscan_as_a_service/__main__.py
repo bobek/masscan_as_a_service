@@ -270,7 +270,7 @@ def main() -> None:
                 args.targets = io.StringIO("\n".join(api_targets.keys()) + "\n")
 
             ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(), '%Y%m%d-%H%M%S')
-            labels = dict(label.split('=') for label in args.label)
+            labels = dict(label.split('=', 1) for label in args.label)
             with open(args.ssh_public_key) as stream:
                 key = stream.read()
                 hcloud.add_new_ssh_key(ssh_key_name, key, labels)
