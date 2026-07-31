@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+from importlib.metadata import version
+
 from jinja2 import Template
 
 from masscan_as_a_service.__main__ import _args_parser
 
 with open('README.jinja2.md') as stream:
     jinga_template = Template(stream.read())
+
+jinga_template.globals['version'] = version('masscan-as-a-service')
 
 
 def template_function(func):

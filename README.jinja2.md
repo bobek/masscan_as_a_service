@@ -1,6 +1,8 @@
 # Masscan as a Service
 
 [![CI](https://github.com/bobek/masscan_as_a_service/actions/workflows/ci.yml/badge.svg)](https://github.com/bobek/masscan_as_a_service/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/masscan-as-a-service.svg)](https://pypi.org/project/masscan-as-a-service/)
+[![Python versions](https://img.shields.io/pypi/pyversions/masscan-as-a-service.svg)](https://pypi.org/project/masscan-as-a-service/)
 
 It happened to everyone -- forgotten rule in `iptables` caused open access to `docker` control port. Next thing you know, malicious containers running on your infrastructure, sending spam emails at best. Woudn't be great if you get notified, that something on a previously unseen TCP or UDP port started accepting connections on your server?
 
@@ -10,12 +12,14 @@ WARNING: commence port scanning from and to systems you operate, and you are all
 
 ## Installation
 
-Whole project is distributed as a Python package (PEP 621 / `pyproject.toml`) to make it simple to include in your tooling. It is **not** yet on <https://pypi.org>, so install it straight from git:
+Whole project is distributed as a Python package (PEP 621 / `pyproject.toml`) to make it simple to include in your tooling. It is published on PyPI as [`masscan-as-a-service`](https://pypi.org/project/masscan-as-a-service/), so a standalone install is:
 
 ```shell
-uv tool install git+https://github.com/bobek/masscan_as_a_service.git
+uv tool install masscan-as-a-service
+# or, with pipx
+pipx install masscan-as-a-service
 # or, with pip
-pip install git+https://github.com/bobek/masscan_as_a_service.git
+pip install masscan-as-a-service
 ```
 
 Or declare it as a dependency of **your** project in `pyproject.toml`:
@@ -23,8 +27,16 @@ Or declare it as a dependency of **your** project in `pyproject.toml`:
 ```toml
 [project]
 dependencies = [
-    "masscan-as-a-service @ git+https://github.com/bobek/masscan_as_a_service.git",
+    "masscan-as-a-service>={{ version }}",
 ]
+```
+
+If you need something which is not released yet, install straight from git:
+
+```shell
+uv tool install git+https://github.com/bobek/masscan_as_a_service.git
+# or, with pip
+pip install git+https://github.com/bobek/masscan_as_a_service.git
 ```
 
 This will give you `masscan_as_a_service` binary in your `bin` directory. As usual, a virtual environment (`python -m venv`, `uv`, ...) is recommended.
