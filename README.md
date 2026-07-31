@@ -29,7 +29,15 @@ dependencies = [
 
 This will give you `masscan_as_a_service` binary in your `bin` directory. As usual, a virtual environment (`python -m venv`, `uv`, ...) is recommended.
 
-For development we use [uv](https://docs.astral.sh/uv/). Clone the repository and let `uv` create the virtual environment, install the pinned dependencies from `uv.lock` and the project itself in editable mode:
+For development we use [uv](https://docs.astral.sh/uv/). The Python and `uv` versions are pinned in [`mise.toml`](mise.toml), so with [mise](https://mise.jdx.org/) installed you get both with:
+
+```shell
+mise install
+```
+
+Without `mise`, install `uv` [any other way](https://docs.astral.sh/uv/getting-started/installation/) - it will fetch the Python version from `.python-version` on its own.
+
+Then clone the repository and let `uv` create the virtual environment, install the pinned dependencies from `uv.lock` and the project itself in editable mode:
 
 ```shell
 make install   # uv sync
