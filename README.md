@@ -129,6 +129,18 @@ options:
 
 ```
 
+### Command `cleanup_expired`
+
+```
+usage: masscan_as_a_service cleanup-expired [-h] -L LABEL
+
+options:
+  -h, --help         show this help message and exit
+  -L, --label LABEL  All expired (expired delete_after label) VMs matching
+                     {label} will be deleted
+
+```
+
 ## Example
 
 I have provisioned 2 VM on Hetzner Cloud for this demo. Their IP addresses are `94.130.26.161` and `95.217.232.216`.

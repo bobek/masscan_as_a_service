@@ -88,6 +88,12 @@ Some arguments can be defined only on the global level. For example, you turn de
 {{ expand_help('cleanup') }}
 ```
 
+### Command `cleanup_expired`
+
+```
+{{ expand_help('cleanup_expired') }}
+```
+
 ## Example
 
 I have provisioned 2 VM on Hetzner Cloud for this demo. Their IP addresses are `94.130.26.161` and `95.217.232.216`.
