@@ -27,71 +27,91 @@ def _args_parser() -> dict[str, argparse.ArgumentParser]:
     Parse commandline arguments.
     :return: argparse.Namespace for simple use
     """
-    parser = argparse.ArgumentParser(prog='masscan_as_a_service',
-                                     description='Masscan in a box',
-                                     )
+    parser = argparse.ArgumentParser(
+        prog='masscan_as_a_service',
+        description='Masscan in a box',
+    )
 
-    parser.add_argument('-d', '--debug',
-                        dest='debug', action='store_true',
-                        help='Enable debugging')
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help='Enable debugging')
 
-    parser.add_argument('-e', '--environment-config',
-                        dest='env_config',
-                        required=True,
-                        help='YAML file describing execution environment')
+    parser.add_argument(
+        '-e',
+        '--environment-config',
+        dest='env_config',
+        required=True,
+        help='YAML file describing execution environment',
+    )
 
-    parser.add_argument('-R', '--no-resolve',
-                        dest='no_resolve',
-                        action="store_true",
-                        help="Do not resolve IP address to FQDN",
-                        default=False)
+    parser.add_argument(
+        '-R',
+        '--no-resolve',
+        dest='no_resolve',
+        action="store_true",
+        help="Do not resolve IP address to FQDN",
+        default=False,
+    )
 
     subparsers = parser.add_subparsers(dest='command')
 
     parser_masscan = subparsers.add_parser('masscan')
 
     group = parser_masscan.add_mutually_exclusive_group(required=True)
-    group.add_argument('-t', '--targets',
-                       dest='targets', type=str,
-                       help='File with targets (IP address) to scan. One per line.')
+    group.add_argument(
+        '-t', '--targets', dest='targets', type=str, help='File with targets (IP address) to scan. One per line.'
+    )
 
-    group.add_argument('-a', '--api_keys',
-                       dest='api_keys', type=str,
-                       help='File with API keys of projects to scan. YAML array.')
+    group.add_argument(
+        '-a', '--api_keys', dest='api_keys', type=str, help='File with API keys of projects to scan. YAML array.'
+    )
 
-    parser_masscan.add_argument('-L', '--label',
-                                dest='label',
-                                nargs='*',
-                                action='extend',
-                                help="Label to be added to the VM (key=value)",
-                                default=[])
+    parser_masscan.add_argument(
+        '-L',
+        '--label',
+        dest='label',
+        nargs='*',
+        action='extend',
+        help="Label to be added to the VM (key=value)",
+        default=[],
+    )
 
-    parser_masscan.add_argument('-o', '--output_dir',
-                                dest='destination_dir', type=str,
-                                required=True,
-                                help='Directory to write results to')
+    parser_masscan.add_argument(
+        '-o', '--output_dir', dest='destination_dir', type=str, required=True, help='Directory to write results to'
+    )
 
-    parser_masscan.add_argument('--ssh-public-key',
-                                dest='ssh_public_key', type=str,
-                                required=True,
-                                help='File with the public SSH key to be given access to created VM')
+    parser_masscan.add_argument(
+        '--ssh-public-key',
+        dest='ssh_public_key',
+        type=str,
+        required=True,
+        help='File with the public SSH key to be given access to created VM',
+    )
 
-    parser_masscan.add_argument('--ssh-private-key',
-                                dest='ssh_private_key', type=str,
-                                required=True,
-                                help='File with the private SSH key corresponding to the ssh-public-key')
+    parser_masscan.add_argument(
+        '--ssh-private-key',
+        dest='ssh_private_key',
+        type=str,
+        required=True,
+        help='File with the private SSH key corresponding to the ssh-public-key',
+    )
 
     parser_cleanup = subparsers.add_parser('cleanup')
-    parser_cleanup.add_argument('-t', '--threshold',
-                                dest='threshold', type=int,
-                                required=True,
-                                help='All VMs older then THRESHOLD seconds will be deleted.')
+    parser_cleanup.add_argument(
+        '-t',
+        '--threshold',
+        dest='threshold',
+        type=int,
+        required=True,
+        help='All VMs older then THRESHOLD seconds will be deleted.',
+    )
 
     parser_cleanup_expired = subparsers.add_parser('cleanup-expired')
-    parser_cleanup_expired.add_argument('-L', '--label',
-                                dest='label',
-                                required=True,
-                                help='All expired (expired delete_after label) VMs matching {label} will be deleted')
+    parser_cleanup_expired.add_argument(
+        '-L',
+        '--label',
+        dest='label',
+        required=True,
+        help='All expired (expired delete_after label) VMs matching {label} will be deleted',
+    )
 
     return {
         'global': parser,
@@ -151,8 +171,7 @@ def process_masscan_results(masscan_json_output_path: str) -> dict:
         # as masscan actually produces an invalid JSON.
         json_data = []
         try:
-            json_data = json.loads(
-                "".join(raw_data.split()).rstrip(",]") + "]")
+            json_data = json.loads("".join(raw_data.split()).rstrip(",]") + "]")
         except JSONDecodeError as e:
             print(e)
     output = {}
@@ -200,6 +219,7 @@ def resolve(ip):
         print(f'Failed to resolve: {e}')
         return ip
 
+
 def handle_signal(signum, frame, hcloud, vm_name, ssh_key_name):
     logging.warning("Interrupted - Cleaning up")
     try:
@@ -213,6 +233,7 @@ def handle_signal(signum, frame, hcloud, vm_name, ssh_key_name):
     except Exception as e:
         logging.error(f"Failed to delete provisioned SSH key: {e}")
         pass
+
 
 def main() -> None:
     """
@@ -246,19 +267,15 @@ def main() -> None:
             api_targets = None
             if args.api_keys:
                 api_targets = get_api_targets(args.api_keys)
-                args.targets = io.StringIO(
-                        "\n".join(api_targets.keys())
-                        + "\n")
+                args.targets = io.StringIO("\n".join(api_targets.keys()) + "\n")
 
-            ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
-                                                               '%Y%m%d-%H%M%S')
+            ssh_key_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(), '%Y%m%d-%H%M%S')
             labels = dict(label.split('=') for label in args.label)
             with open(args.ssh_public_key) as stream:
                 key = stream.read()
                 hcloud.add_new_ssh_key(ssh_key_name, key, labels)
 
-            vm_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(),
-                                                          '%Y%m%d-%H%M%S')
+            vm_name = 'masscan-' + datetime.date.strftime(datetime.datetime.now(), '%Y%m%d-%H%M%S')
 
             # do the cleanup if aborted
             for signal_to_handle in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGABRT, signal.SIGHUP]:
@@ -271,12 +288,8 @@ def main() -> None:
                 tmp_output_file = os.path.join(temp_dir, 'output.json')
 
                 try:
-                    scan_server = hcloud.create_vm(
-                        vm_name, provider["vm_model"], provider["vm_os_image"], labels
-                    )
-                    ssh = SshWorker(
-                        scan_server.public_net.ipv4.ip, args.ssh_private_key
-                    )
+                    scan_server = hcloud.create_vm(vm_name, provider["vm_model"], provider["vm_os_image"], labels)
+                    ssh = SshWorker(scan_server.public_net.ipv4.ip, args.ssh_private_key)
                     assert ssh.is_alive()
                     assert ssh.bootstrap_host().ok
 
