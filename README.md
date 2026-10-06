@@ -27,7 +27,7 @@ Or declare it as a dependency of **your** project in `pyproject.toml`:
 ```toml
 [project]
 dependencies = [
-    "masscan-as-a-service>=1.0.0",
+    "masscan-as-a-service>=1.0.1",
 ]
 ```
 
